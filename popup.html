@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Reddit Auto Translate</title>
+    <style>
+      body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:12px;width:300px}
+      button{width:100%;padding:10px;margin:6px 0;border:1px solid #ccc;border-radius:8px;cursor:pointer;font-size:14px}
+      .muted{font-size:12px;color:#666}
+    </style>
+  </head>
+  <body>
+    <h3 style="margin:0 0 8px">Reddit Auto Translate (v6.1)</h3>
+    <button id="to_vi">Open as Translated (tl=vi)</button>
+    <button id="to_original">Open as Original (show=original)</button>
+    <button id="clear">Reset 'tried' cache</button>
+    <p class="muted">Request-time redirect when possible; falls back to pre-commit navigation. Tries once per post per session.</p>
+    <script src="popup.js"></script>
+  </body>
+</html>
