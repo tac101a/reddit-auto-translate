@@ -1,6 +1,6 @@
-# Reddit Auto Translate (vi) — v6.2 (MV2 / Instant Redirect)
+# Reddit Auto Translate (vi) — v2.0 (MV2 / Instant Redirect)
 
-![Version](https://img.shields.io/badge/version-v6.2-blue) ![Manifest](https://img.shields.io/badge/manifest-v2-orange) ![Status](https://img.shields.io/badge/status-stable-green)
+![Version](https://img.shields.io/badge/version-v2.0-blue) ![Manifest](https://img.shields.io/badge/manifest-v2-orange) ![Status](https://img.shields.io/badge/status-stable-green)
 
 [🇬🇧 English](#english) | [🇻🇳 Tiếng Việt](#tiếng-việt)
 
