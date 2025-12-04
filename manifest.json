@@ -1,5 +1,5 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "Reddit Auto Translate (vi) v6.1 (Request-time + Fallback)",
   "version": "1.6.1",
   "description": "Prefer request-time redirect via webRequest; fallback to webNavigation pre-commit if needed. Tries once per post per session, respects show=original.",
@@ -8,13 +8,15 @@
     "webRequestBlocking",
     "webNavigation",
     "storage",
-    "tabs"
+    "tabs",
+    "*://*.reddit.com/*",
+    "*://*.redd.it/*"
   ],
-  "host_permissions": ["*://*.reddit.com/*", "*://*.redd.it/*"],
   "background": {
-    "service_worker": "background.js"
+    "scripts": ["background.js"],
+    "persistent": true
   },
-  "action": {
+  "browser_action": {
     "default_title": "Reddit Auto Translate",
     "default_popup": "popup.html"
   }

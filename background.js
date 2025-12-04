@@ -1,8 +1,8 @@
 // In-memory cache is the source of truth for per-URL attempts
 let triedCache = new Set();
 
-// Load session cache into memory on service worker startup
-chrome.storage.session.get({ triedMap: {} }).then(({ triedMap }) => {
+// Load cache into memory on background script startup (using local storage for MV2)
+chrome.storage.local.get({ triedMap: {} }, function ({ triedMap }) {
   if (triedMap) {
     Object.keys(triedMap).forEach((key) => triedCache.add(key));
   }
@@ -39,9 +39,9 @@ function markTried(urlStr) {
   const baseKey = baseKeyFrom(urlStr);
   if (!baseKey) return;
   triedCache.add(baseKey);
-  chrome.storage.session.get({ triedMap: {} }).then(({ triedMap }) => {
+  chrome.storage.local.get({ triedMap: {} }, function ({ triedMap }) {
     triedMap[baseKey] = true;
-    chrome.storage.session.set({ triedMap });
+    chrome.storage.local.set({ triedMap });
   });
 }
 
@@ -82,7 +82,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === "clearTried") {
     triedCache.clear();
-    chrome.storage.session.set({ triedMap: {} }).then(() => {
+    chrome.storage.local.set({ triedMap: {} }, function () {
       sendResponse({ ok: true });
     });
     return true; // keep the channel open for async response
