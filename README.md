@@ -1,31 +1,30 @@
-# Reddit Auto Translate (vi) — v2.0 (MV2 / Instant Redirect)
+# Reddit Auto Translate (vi) - v2.0 (MV2 / Instant Redirect)
 
-A high-performance extension for Chrome / Edge / Opera GX.
-Automatically redirects Reddit posts to the Vietnamese translated version (`?tl=vi`).
+A high-performance extension for Chrome / Edge / Opera GX. Automatically redirects Reddit posts to the Vietnamese translated version (`?tl=vi`).
 
-> **Note:** This version uses **Manifest V2** to unlock the full power of `webRequestBlocking` (synchronous). This ensures redirects happen **instantly** before the page loads, eliminating double-loading or flashing.
+> Note: This version uses Manifest V2 to unlock the full power of `webRequestBlocking` (synchronous). Redirects happen instantly before the page loads, avoiding double-loading or flashing.
 
-## 🚀 Features
+## Features
 
-- **Zero-Delay Redirect**: Uses synchronous blocking listeners to force `?tl=vi` immediately.
-- **Smart Loop Protection**: Uses an in-memory `Set` + `storage.local` to track attempts. Tries redirecting **once per post per session** to prevent infinite loops if Reddit refuses to translate.
-- **Respects Original**: If you manually choose "Show Original" (or the URL has `?show=original`), the extension will back off.
-- **Opera GX Compatible**: Works perfectly on browsers that have strict MV3 limitations for packed extensions.
+- Zero-delay redirect: synchronous blocking listener forces `?tl=vi` immediately.
+- Smart loop protection: in-memory `Set` plus `storage.local`, tries once per post per session.
+- Respects original: backs off if the URL has `?show=original`.
+- Opera GX compatible: works even with strict MV3 limitations for packed extensions.
 
-## 🛠️ Installation
+## Installation
 
-1. Download or Clone this repository.
-2. Open your browser's extension manager:
+1. Download or clone this repository.
+2. Open the extension manager:
    - Chrome/Edge: `chrome://extensions`
    - Opera: `opera://extensions`
-3. Enable **Developer mode** (top right corner).
-4. Click **Load unpacked** and select this folder.
+3. Enable Developer mode.
+4. Click Load unpacked and select this folder.
 
-> ⚠️ **Warning:** You may see a generic warning: *"Manifest version 2 is deprecated..."*. You can safely **ignore** this. It is just a notice from Google, the extension works perfectly in Developer Mode.
+> Warning: You may see a notice: "Manifest version 2 is deprecated...". It is safe to ignore in Developer Mode.
 
-## ⚙️ Permissions
+## Permissions
 
-This extension uses **Manifest V2** syntax:
+This extension uses Manifest V2 syntax:
 
 ```json
 "permissions": [
@@ -39,18 +38,18 @@ This extension uses **Manifest V2** syntax:
 ]
 ```
 
-## 🧩 Architecture
+## Architecture
 
 - `manifest.json`: MV2, persistent background page.
 - `background.js`: Core logic; handles `onBeforeRequest` (blocking) and manages the tried cache.
-- `popup.js`: Handles manual overrides (Open as Translated / Open as Original) and cache clearing.
+- `popup.js`: Manual overrides (Open as Translated / Open as Original) and cache clearing.
 
-## 📝 Usage
+## Usage
 
-Just browse Reddit—posts will automatically open in Vietnamese.
+Browse Reddit and posts will open in Vietnamese automatically.
 
-Click the extension icon to:
+Extension popup actions:
 
-- **Open as Translated**: Force the current tab to Vietnamese.
-- **Open as Original**: Force the current tab to the original version.
-- **Reset cache**: Clear the session memory if you want to retry redirects.
+- Open as Translated: force the current tab to Vietnamese.
+- Open as Original: force the current tab to the original version.
+- Reset cache: clear session memory to retry redirects.

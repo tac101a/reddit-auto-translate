@@ -18,30 +18,49 @@ function setParam(url, key, value, removeKeys = []) {
   }
 }
 
+async function updateUIState() {
+  const tab = await getActiveTab();
+  if (!tab?.url) return;
+  try {
+    const u = new URL(tab.url);
+    const btnVi = document.getElementById("to_vi");
+    const btnOg = document.getElementById("to_original");
+    btnVi.classList.remove("active");
+    btnOg.classList.remove("active");
+    if (u.searchParams.get("tl") === "vi") {
+      btnVi.classList.add("active");
+    } else if (u.searchParams.get("show") === "original") {
+      btnOg.classList.add("active");
+    }
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+updateUIState();
+
 document.getElementById("to_vi").addEventListener("click", async () => {
   const tab = await getActiveTab();
-  if (!tab?.url) return; // Nếu không lấy được tab thì dừng
-
+  if (!tab?.url) return;
   const newUrl = setParam(tab.url, "tl", "vi", ["show"]);
-
-  // Dùng callback cho chắc ăn trên mọi trình duyệt
-  chrome.tabs.update(tab.id, { url: newUrl }, () => {
-    window.close();
-  });
+  chrome.tabs.update(tab.id, { url: newUrl }, () => window.close());
 });
 
 document.getElementById("to_original").addEventListener("click", async () => {
   const tab = await getActiveTab();
   if (!tab?.url) return;
-
   const newUrl = setParam(tab.url, "show", "original", ["tl"]);
-  chrome.tabs.update(tab.id, { url: newUrl }, () => {
-    window.close();
-  });
+  chrome.tabs.update(tab.id, { url: newUrl }, () => window.close());
 });
 
 document.getElementById("clear").addEventListener("click", () => {
+  const btn = document.getElementById("clear");
+  const originalContent = btn.innerHTML;
+  btn.innerHTML = "Clearing...";
   chrome.runtime.sendMessage({ type: "clearTried" }, () => {
-    window.close();
+    setTimeout(() => {
+      btn.innerHTML = "Done!";
+      setTimeout(() => window.close(), 500);
+    }, 300);
   });
 });

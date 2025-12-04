@@ -1,0 +1,141 @@
+:root {
+  --primary: #ff4500;
+  --bg: #1a1a1b;
+  --surface: #272729;
+  --text: #d7dadc;
+  --text-muted: #818384;
+  --border: #343536;
+  --hover: #3a3a3c;
+}
+
+body {
+  margin: 0;
+  width: 280px;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  user-select: none;
+}
+
+.container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.logo svg {
+  color: var(--primary);
+}
+
+.version {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--surface);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  position: relative;
+  text-align: left;
+}
+
+.btn:hover {
+  background-color: var(--hover);
+  border-color: var(--text-muted);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn .icon {
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+.btn .text {
+  flex-grow: 1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn.active {
+  border-color: var(--primary);
+  background-color: rgba(255, 69, 0, 0.1);
+}
+
+.btn.active .text {
+  color: var(--primary);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: transparent;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.btn.active .status-dot {
+  background-color: var(--primary);
+  box-shadow: 0 0 6px var(--primary);
+}
+
+footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.btn-text:hover {
+  color: var(--text);
+  background-color: var(--surface);
+}

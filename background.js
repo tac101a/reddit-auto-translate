@@ -1,12 +1,18 @@
 // In-memory cache is the source of truth for per-URL attempts
 let triedCache = new Set();
 
-// Load cache into memory on background script startup (using local storage for MV2)
-chrome.storage.local.get({ triedMap: {} }, function ({ triedMap }) {
-  if (triedMap) {
-    Object.keys(triedMap).forEach((key) => triedCache.add(key));
-  }
-});
+function loadTried() {
+  chrome.storage.local.get({ triedMap: {} }, ({ triedMap }) => {
+    if (triedMap && typeof triedMap === "object") {
+      triedCache = new Set(Object.keys(triedMap));
+    }
+  });
+}
+
+function resetTried() {
+  triedCache.clear();
+  chrome.storage.local.set({ triedMap: {} });
+}
 
 function baseKeyFrom(urlStr) {
   try {
@@ -39,11 +45,19 @@ function markTried(urlStr) {
   const baseKey = baseKeyFrom(urlStr);
   if (!baseKey) return;
   triedCache.add(baseKey);
-  chrome.storage.local.get({ triedMap: {} }, function ({ triedMap }) {
-    triedMap[baseKey] = true;
-    chrome.storage.local.set({ triedMap });
+  chrome.storage.local.get({ triedMap: {} }, ({ triedMap }) => {
+    const map = triedMap && typeof triedMap === "object" ? triedMap : {};
+    map[baseKey] = true;
+    chrome.storage.local.set({ triedMap: map });
   });
 }
+
+// Reset cache on browser start or extension install/update
+chrome.runtime.onStartup.addListener(resetTried);
+chrome.runtime.onInstalled.addListener(resetTried);
+
+// Load persisted cache (in case background reloads mid-session)
+loadTried();
 
 // Request-time redirect (blocking listener must stay synchronous)
 chrome.webRequest.onBeforeRequest.addListener(
@@ -81,10 +95,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(
 // Messaging
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === "clearTried") {
-    triedCache.clear();
-    chrome.storage.local.set({ triedMap: {} }, function () {
-      sendResponse({ ok: true });
-    });
-    return true; // keep the channel open for async response
+    resetTried();
+    sendResponse({ ok: true });
   }
 });

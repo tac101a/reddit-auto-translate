@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Reddit Auto Translate (vi)",
+  "name": "Reddit Auto Translate (vi) - v2.0 (Instant Redirect)",
   "version": "2.0",
-  "description": "Prefer request-time redirect via webRequest; fallback to webNavigation pre-commit if needed. Tries once per post per session, respects show=original.",
+  "description": "Manifest V2 with synchronous webRequestBlocking for instant tl=vi redirects; fallback via webNavigation; once per post per session, respects show=original.",
   "permissions": [
     "webRequest",
     "webRequestBlocking",
