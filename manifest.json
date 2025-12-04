@@ -10,13 +10,10 @@
     "storage",
     "tabs"
   ],
-  "host_permissions": [
-    "*://*.reddit.com/*",
-    "*://*.redd.it/*"
-  ],
+  "host_permissions": ["*://*.reddit.com/*", "*://*.redd.it/*"],
   "background": {
     "service_worker": "background.js"
-  ],
+  },
   "action": {
     "default_title": "Reddit Auto Translate",
     "default_popup": "popup.html"
