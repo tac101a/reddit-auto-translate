@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Reddit Auto Translate (vi)",
-  "version": "1.6.1",
+  "version": "2.0",
   "description": "Prefer request-time redirect via webRequest; fallback to webNavigation pre-commit if needed. Tries once per post per session, respects show=original.",
   "permissions": [
     "webRequest",

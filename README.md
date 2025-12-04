@@ -1,23 +1,56 @@
-# Reddit Auto Translate (vi) — v6.1 (Request-time + Fallback)
+# Reddit Auto Translate (vi) — v2.0 (MV2 / Instant Redirect)
 
-For Opera GX / Chrome / Edge (Chromium).
+A high-performance extension for Chrome / Edge / Opera GX.
+Automatically redirects Reddit posts to the Vietnamese translated version (`?tl=vi`).
 
-- **Preferred**: `webRequest.onBeforeRequest` with `"blocking"` redirects to `?tl=vi` **before** page loads.
-- **Fallback**: `webNavigation.onBeforeNavigate` updates the tab URL pre-commit if some builds don't fire `webRequest` for unpacked extensions.
-- **Once per post per session**, respects `?show=original`.
+> **Note:** This version uses **Manifest V2** to unlock the full power of `webRequestBlocking` (synchronous). This ensures redirects happen **instantly** before the page loads, eliminating double-loading or flashing.
 
-## Install
-1. Unzip.
-2. Go to `opera://extensions` (or `chrome://extensions`).
-3. Enable Developer mode.
-4. Load unpacked.
+## 🚀 Features
 
-## Permissions
+- **Zero-Delay Redirect**: Uses synchronous blocking listeners to force `?tl=vi` immediately.
+- **Smart Loop Protection**: Uses an in-memory `Set` + `storage.local` to track attempts. Tries redirecting **once per post per session** to prevent infinite loops if Reddit refuses to translate.
+- **Respects Original**: If you manually choose "Show Original" (or the URL has `?show=original`), the extension will back off.
+- **Opera GX Compatible**: Works perfectly on browsers that have strict MV3 limitations for packed extensions.
+
+## 🛠️ Installation
+
+1. Download or Clone this repository.
+2. Open your browser's extension manager:
+   - Chrome/Edge: `chrome://extensions`
+   - Opera: `opera://extensions`
+3. Enable **Developer mode** (top right corner).
+4. Click **Load unpacked** and select this folder.
+
+> ⚠️ **Warning:** You may see a generic warning: *"Manifest version 2 is deprecated..."*. You can safely **ignore** this. It is just a notice from Google, the extension works perfectly in Developer Mode.
+
+## ⚙️ Permissions
+
+This extension uses **Manifest V2** syntax:
+
 ```json
-"permissions": ["webRequest", "webRequestBlocking", "webNavigation", "storage", "tabs"],
-"host_permissions": ["*://*.reddit.com/*"]
+"permissions": [
+  "webRequest",
+  "webRequestBlocking",
+  "webNavigation",
+  "storage",
+  "tabs",
+  "*://*.reddit.com/*",
+  "*://*.redd.it/*"
+]
 ```
 
-## Notes
-- Session memory resets when you close the browser.
-- You can clear the session cache using the popup.
+## 🧩 Architecture
+
+- `manifest.json`: MV2, persistent background page.
+- `background.js`: Core logic; handles `onBeforeRequest` (blocking) and manages the tried cache.
+- `popup.js`: Handles manual overrides (Open as Translated / Open as Original) and cache clearing.
+
+## 📝 Usage
+
+Just browse Reddit—posts will automatically open in Vietnamese.
+
+Click the extension icon to:
+
+- **Open as Translated**: Force the current tab to Vietnamese.
+- **Open as Original**: Force the current tab to the original version.
+- **Reset cache**: Clear the session memory if you want to retry redirects.
