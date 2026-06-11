@@ -1,15 +1,14 @@
 {
-  "manifest_version": 2,
-  "name": "Reddit Auto Translate (vi) - v2.0 (Instant Redirect)",
-  "version": "2.0",
-  "description": "Manifest V2 with synchronous webRequestBlocking for instant tl=vi redirects; fallback via webNavigation; once per post per session, respects show=original.",
+  "manifest_version": 3,
+  "name": "Reddit Auto Translate (vi) - v3.0",
+  "version": "3.0",
+  "description": "Manifest V3 Reddit auto-translation using service worker orchestration and session-backed redirect state.",
   "permissions": [
-    "webRequest",
-    "webRequestBlocking",
     "webNavigation",
     "storage",
-    "tabs",
-    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
     "*://*.reddit.com/*",
     "*://*.redd.it/*"
   ],
@@ -20,10 +19,10 @@
     "128": "icons/128.png"
   },
   "background": {
-    "scripts": ["background.js"],
-    "persistent": true
+    "service_worker": "background.js",
+    "type": "module"
   },
-  "browser_action": {
+  "action": {
     "default_title": "Reddit Auto Translate",
     "default_popup": "popup.html",
     "default_icon": {
