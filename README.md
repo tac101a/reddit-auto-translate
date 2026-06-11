@@ -1,58 +1,73 @@
-# Reddit Auto Translate
+# Reddit Auto Translate (vi) — v3.0 (Manifest V3)
 
-Reddit Auto Translate is a Manifest V3 browser extension that automatically opens supported Reddit pages with Reddit's Vietnamese translation parameter, `tl=vi`.
+![Version](https://img.shields.io/badge/version-v3.0-blue) ![Manifest](https://img.shields.io/badge/manifest-v3-orange) ![Status](https://img.shields.io/badge/status-stable-green) ![Privacy](https://img.shields.io/badge/privacy-isolated-purple)
 
-The extension does not translate content itself. It enables Reddit's native translated view and respects pages that are already translated or explicitly opened in original mode.
+[🇬🇧 English](#english) | [🇻🇳 Tiếng Việt](#tiếng-việt)
 
-## Architecture
+> **DISCLAIMER:**
+> Đây là công cụ **Kích hoạt** chế độ dịch của Reddit, không phải công cụ dịch thuật.
+> Extension hoạt động dựa trên tính năng `?tl=vi` của Reddit. Nếu bài đăng chưa được Reddit hỗ trợ dịch, extension sẽ hiển thị bản gốc.
+>
+> This is a **Native Translation Enabler**, not a translation engine.
+> It relies on Reddit's `?tl=vi` feature. If a post is not supported by Reddit, it will display the original version.
 
-This refactor moves the extension from a Manifest V2 persistent background page to a Manifest V3 service worker architecture.
+---
 
-- `manifest.json` declares an MV3 module service worker and `incognito: split` for privacy isolation.
-- `background.js` is only the orchestration layer. It listens for navigation events and delegates URL rules and cache state to helper modules.
-- `src/rules/urlValidator.js` contains pure URL eligibility logic with no Chrome API access.
-- `src/storage/sessionManager.js` abstracts `chrome.storage.session` and owns redirect-attempt state.
-- `popup.js` handles manual page actions and async messaging with the service worker.
+<a name="english"></a>
+## 🇬🇧 Description
 
-## Key Improvements
+A high-performance, privacy-first extension for Chromium browsers. Automatically redirects supported Reddit posts to the Vietnamese translated version (`?tl=vi`). 
 
-- O(1) session state: redirect attempts are stored as independent `chrome.storage.session` keys, avoiding large read-modify-write maps and disk I/O lag.
-- Zero persistent RAM usage: MV3 service workers start on demand and shut down when idle, removing the always-alive background page.
-- Privacy-first Incognito mode: `incognito: split` gives normal and Incognito windows separate service workers and separate session storage.
-- SPA-aware navigation: `chrome.webNavigation.onHistoryStateUpdated` catches Reddit internal route changes without relying on blocking request interception.
-- Idempotent redirect checks: pure URL rules plus session-backed state prevent repeated redirects and service worker restart issues.
+This v3.0 update features a complete architectural rewrite to **Manifest V3**, moving from a persistent background page to an event-driven Service Worker, ensuring zero background resource consumption when idle.
 
-## Tech Stack
+### Key Improvements & Architecture
 
-- Chrome Extension Manifest V3
-- MV3 module service worker
-- `chrome.storage.session`
-- `chrome.tabs.onUpdated`
-- `chrome.webNavigation.onHistoryStateUpdated`
-- Pure JavaScript URL validation helpers
+- **Zero Persistent RAM:** Powered by an MV3 module service worker that starts on-demand and sleeps when idle.
+- **O(1) Session State:** Redirect attempts are stored as independent `chrome.storage.session` keys. This eliminates disk I/O lag and prevents read-modify-write race conditions.
+- **SPA-Aware Routing:** Utilizes `chrome.webNavigation.onHistoryStateUpdated` to seamlessly catch Reddit's internal Single Page Application route changes without heavy request blocking.
+- **Privacy First (Incognito Split):** Configured with `"incognito": "split"`. Normal and Incognito windows run entirely separate service workers and session storages. Cache state never leaks between browsing modes.
 
-## Installation
+### Installation
 
-1. Clone or download this repository.
-2. Open your Chromium extension manager:
-   - Chrome or Edge: `chrome://extensions`
-   - Opera: `opera://extensions`
-3. Enable Developer mode.
-4. Click Load unpacked.
-5. Select the project directory.
+1. **Clone** or **Download** this repository as a ZIP and extract it.
+2. Open your browser's extension manager (`chrome://extensions` or `opera://extensions`).
+3. Enable **Developer mode** (top right corner).
+4. Click **Load unpacked** and select the extracted folder.
 
-## Usage
+### Usage
 
-Browse Reddit normally. Eligible Reddit pages are redirected once per browser session to include `tl=vi`.
+- Browse Reddit normally. Eligible pages are automatically redirected **once per session**.
+- Use the Extension Popup to:
+  - **Translate to Vietnamese:** Force the current page to translate.
+  - **Show Original:** Revert the current page to English (the extension will memorize this choice for the session).
+  - **Clear Cache:** Manually wipe the session memory if you want the extension to attempt translating previously visited links again.
 
-Use the extension popup to:
+---
 
-- Translate the current Reddit page to Vietnamese.
-- View the original Reddit page.
-- Clear the session redirect cache.
+<a name="tiếng-việt"></a>
+## 🇻🇳 Mô ta
 
-## Privacy Notes
+Extension tự động chuyển hướng các bài viết trên Reddit sang phiên bản Tiếng Việt (`?tl=vi`).
+Phiên bản v3.0 là một đợt trùng tu toàn diện về mặt kiến trúc, chuyển đổi hoàn toàn sang **Manifest V3** để tối ưu hóa hiệu năng và bảo vệ quyền riêng tư.
 
-The extension stores only temporary redirect-attempt keys in `chrome.storage.session`. This state is session-scoped and is not written to disk through `chrome.storage.local`.
+### Tính năng & Cải tiến cốt lõi
 
-Incognito mode runs in split mode, so Incognito redirect state is isolated from normal browsing state.
+- **Không ngốn RAM (Zero Persistent RAM):** Chuyển từ Background Page (chạy ngầm vĩnh viễn) sang Service Worker (chỉ thức dậy khi cần thiết). Hoàn toàn không gây giật lag cho trình duyệt hay các trang web khác.
+- **Tốc độ xử lý O(1):** Dữ liệu bộ nhớ tạm được lưu trên RAM (`chrome.storage.session`) với các key độc lập, loại bỏ hoàn toàn hiện tượng nghẽn cổ chai (Disk I/O) khi đọc/ghi ổ cứng.
+- **Tương thích SPA:** Hoạt động mượt mà với cơ chế tải trang động (Single Page Application) của Reddit nhờ API `onHistoryStateUpdated`.
+- **Bảo mật tuyệt đối (Incognito Split):** Khi lướt Reddit ở chế độ Ẩn danh (Incognito), trình duyệt sẽ tạo một Service Worker riêng biệt. Lịch sử dịch của bạn ở tab thường sẽ **không** bị rò rỉ sang tab ẩn danh và ngược lại.
+
+### Hướng dẫn Cài đặt
+
+1. **Tải về** toàn bộ code này (nút Code -> Download ZIP) và giải nén.
+2. Mở trang quản lý tiện ích của trình duyệt (Gõ `chrome://extensions` hoặc `opera://extensions`).
+3. Bật chế độ **Developer mode** (Chế độ dành cho nhà phát triển) ở góc trên bên phải.
+4. Bấm nút **Load unpacked** (Tải tiện ích đã giải nén) và chọn thư mục bạn vừa giải nén.
+
+### Cách sử dụng
+
+- Cứ lướt Reddit như bình thường. Các bài viết hợp lệ sẽ tự động hiện Tiếng Việt (chỉ tự động 1 lần cho mỗi bài đăng trong một phiên làm việc).
+- Bấm vào icon của Extension trên thanh công cụ để:
+  - **Dịch sang Tiếng Việt**: Ép trang hiện tại sang tiếng Việt.
+  - **Xem bản gốc**: Ép trang hiện tại về tiếng Anh gốc (Extension sẽ ghi nhớ lựa chọn này và không tự động dịch lại).
+  - **Reset Cache**: Xóa bộ nhớ tạm của extension trong trường hợp bạn muốn extension tự động dịch lại các bài viết đã xem.
