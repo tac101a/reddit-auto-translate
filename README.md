@@ -1,82 +1,58 @@
-# Reddit Auto Translate (vi) — v2.0 (MV2 / Instant Redirect)
+# Reddit Auto Translate
 
-![Version](https://img.shields.io/badge/version-v2.0-blue) ![Manifest](https://img.shields.io/badge/manifest-v2-orange) ![Status](https://img.shields.io/badge/status-stable-green)
+Reddit Auto Translate is a Manifest V3 browser extension that automatically opens supported Reddit pages with Reddit's Vietnamese translation parameter, `tl=vi`.
 
-[🇬🇧 English](#english) | [🇻🇳 Tiếng Việt](#tiếng-việt)
+The extension does not translate content itself. It enables Reddit's native translated view and respects pages that are already translated or explicitly opened in original mode.
 
-> ⚠️ **DISCLAIMER:**
-> Đây là công cụ **Kích hoạt** chế độ dịch của Reddit, không phải công cụ dịch thuật.
-> Extension hoạt động dựa trên tính năng `?tl=vi` của Reddit. Nếu bài đăng chưa được Reddit hỗ trợ dịch, extension sẽ hiển thị bản gốc.
->
-> This is a **Native Translation Enabler**, not a translation engine.
-> It relies on Reddit's `?tl=vi` feature. If a post is not supported by Reddit, it will display the original version.
-> 
----
+## Architecture
 
-<a name="english"></a>
-## 🇬🇧 English Description
+This refactor moves the extension from a Manifest V2 persistent background page to a Manifest V3 service worker architecture.
 
-A high-performance extension for Chrome / Edge / Opera GX.
-Automatically redirects Reddit posts to the Vietnamese translated version (`?tl=vi`).
+- `manifest.json` declares an MV3 module service worker and `incognito: split` for privacy isolation.
+- `background.js` is only the orchestration layer. It listens for navigation events and delegates URL rules and cache state to helper modules.
+- `src/rules/urlValidator.js` contains pure URL eligibility logic with no Chrome API access.
+- `src/storage/sessionManager.js` abstracts `chrome.storage.session` and owns redirect-attempt state.
+- `popup.js` handles manual page actions and async messaging with the service worker.
 
-> **Note:** This version uses **Manifest V2** to unlock the full power of `webRequestBlocking` (synchronous). This ensures redirects happen **instantly** before the page loads, eliminating double-loading or flashing.
+## Key Improvements
 
-### 🚀 Features
+- O(1) session state: redirect attempts are stored as independent `chrome.storage.session` keys, avoiding large read-modify-write maps and disk I/O lag.
+- Zero persistent RAM usage: MV3 service workers start on demand and shut down when idle, removing the always-alive background page.
+- Privacy-first Incognito mode: `incognito: split` gives normal and Incognito windows separate service workers and separate session storage.
+- SPA-aware navigation: `chrome.webNavigation.onHistoryStateUpdated` catches Reddit internal route changes without relying on blocking request interception.
+- Idempotent redirect checks: pure URL rules plus session-backed state prevent repeated redirects and service worker restart issues.
 
-- **Zero-Delay Redirect**: Uses synchronous blocking listeners to force `?tl=vi` immediately.
-- **Smart Loop Protection**: Uses an in-memory `Set` + `storage.local` to track attempts. Tries redirecting **once per post per session** to prevent infinite loops if Reddit refuses to translate.
-- **Respects Original**: If you manually choose "Show Original" (or the URL has `?show=original`), the extension will back off.
-- **Opera GX Compatible**: Works perfectly on browsers that have strict MV3 limitations for packed extensions.
+## Tech Stack
 
-### 🛠️ Installation
+- Chrome Extension Manifest V3
+- MV3 module service worker
+- `chrome.storage.session`
+- `chrome.tabs.onUpdated`
+- `chrome.webNavigation.onHistoryStateUpdated`
+- Pure JavaScript URL validation helpers
 
-1.  **Download** or **Clone** this repository.
-2.  Open your browser's extension manager:
-    - Chrome/Edge: `chrome://extensions`
-    - Opera: `opera://extensions`
-3.  Enable **Developer mode** (top right corner).
-4.  Click **Load unpacked** and select the folder containing this code.
+## Installation
 
-> ⚠️ **Warning:** You may see a generic warning: *"Manifest version 2 is deprecated..."*. You can safely **ignore** this. It is just a notice from Google, the extension works perfectly in Developer Mode.
+1. Clone or download this repository.
+2. Open your Chromium extension manager:
+   - Chrome or Edge: `chrome://extensions`
+   - Opera: `opera://extensions`
+3. Enable Developer mode.
+4. Click Load unpacked.
+5. Select the project directory.
 
-### ⚙️ Architecture
+## Usage
 
-- **`manifest.json`**: MV2, Persistent Background Page.
-- **`background.js`**: Central logic. Handles `onBeforeRequest` (Blocking) and manages the `triedCache`.
-- **`popup.js`**: Handles manual overrides (Open as Translated / Open as Original) and cache clearing.
+Browse Reddit normally. Eligible Reddit pages are redirected once per browser session to include `tl=vi`.
 
----
+Use the extension popup to:
 
-<a name="tiếng-việt"></a>
-## 🇻🇳 Tiếng Việt
+- Translate the current Reddit page to Vietnamese.
+- View the original Reddit page.
+- Clear the session redirect cache.
 
-Extension tự động chuyển hướng các bài viết trên Reddit sang phiên bản Tiếng Việt (`?tl=vi`) ngay lập tức.
-Phiên bản này sửa lỗi khó chịu của Reddit khi bạn lỡ bấm "Show Original" và không thể quay lại bản dịch.
+## Privacy Notes
 
-### ✨ Tính năng nổi bật
+The extension stores only temporary redirect-attempt keys in `chrome.storage.session`. This state is session-scoped and is not written to disk through `chrome.storage.local`.
 
-- **Tốc độ ánh sáng**: Chuyển hướng ngay lập tức trước khi trang web tải. Không bị chớp nháy, không tải lại trang 2 lần.
-- **Thông minh**: Tự động phát hiện nếu bài viết không hỗ trợ dịch để tránh bị lỗi vòng lặp (reload liên tục).
-- **Tôn trọng người dùng**: Nếu bạn bấm nút "Xem bản gốc" (Show Original), extension sẽ ghi nhớ và không tự động dịch lại bài đó nữa.
-- **Hỗ trợ Opera GX**: Chạy mượt mà trên Opera GX và các trình duyệt Chromium.
-
-### 📥 Hướng dẫn Cài đặt
-
-Vì đây là phiên bản dành cho Developer (để tối ưu tốc độ), bạn cần cài thủ công:
-
-1.  **Tải về** toàn bộ code này (nút Code -> Download ZIP) và giải nén.
-2.  Mở trang quản lý tiện ích của trình duyệt:
-    - Chrome/Edge: Gõ `chrome://extensions` vào thanh địa chỉ.
-    - Opera: Gõ `opera://extensions`.
-3.  Bật chế độ **Developer mode** (Chế độ dành cho nhà phát triển) ở góc trên bên phải.
-4.  Bấm nút **Load unpacked** (Tải tiện ích đã giải nén) và chọn thư mục bạn vừa giải nén.
-
-> ⚠️ **Lưu ý:** Nếu trình duyệt hiện cảnh báo *"Manifest version 2 is deprecated..."* (Phiên bản kê khai 2 sắp ngừng hỗ trợ...), bạn cứ **KỆ NÓ**. Đây chỉ là thông báo của Google, extension vẫn hoạt động bình thường và an toàn 100%.
-
-### 🎮 Cách sử dụng
-
-- Cứ lướt Reddit như bình thường! Các bài viết sẽ tự động hiện Tiếng Việt.
-- Bấm vào icon của Extension trên thanh công cụ để:
-    - **Dịch sang Tiếng Việt**: Ép trang hiện tại sang tiếng Việt.
-    - **Xem bản gốc**: Ép trang hiện tại về tiếng Anh gốc.
-    - **Reset Cache**: Xóa bộ nhớ tạm nếu extension hoạt động không như ý muốn.
+Incognito mode runs in split mode, so Incognito redirect state is isolated from normal browsing state.

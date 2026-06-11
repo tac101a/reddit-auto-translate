@@ -125,17 +125,41 @@ document.getElementById("to_original").addEventListener("click", async () => {
 
 document.getElementById("clear").addEventListener("click", async () => {
   const btn = document.getElementById("clear");
-  const originalContent = btn.innerHTML;
+  const label = btn.querySelector(".button-label");
+  const originalText = label?.textContent || "Clear Cache";
 
-  btn.innerHTML = "Clearing...";
+  btn.classList.remove("is-success", "is-error");
+  btn.disabled = true;
+
+  if (label) {
+    label.textContent = "Clearing...";
+  }
 
   const response = await sendRuntimeMessage({ type: "clearTried" });
 
   if (response?.ok) {
-    btn.innerHTML = "Done!";
+    btn.classList.add("is-success");
+
+    if (label) {
+      label.textContent = "Cleared!";
+    }
+
     setTimeout(() => window.close(), 500);
     return;
   }
 
-  btn.innerHTML = originalContent;
+  btn.classList.add("is-error");
+
+  if (label) {
+    label.textContent = "Try Again";
+  }
+
+  setTimeout(() => {
+    btn.classList.remove("is-error");
+    btn.disabled = false;
+
+    if (label) {
+      label.textContent = originalText;
+    }
+  }, 1200);
 });
