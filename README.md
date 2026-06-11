@@ -45,7 +45,7 @@ This v3.0 update features a complete architectural rewrite to **Manifest V3**, m
 ---
 
 <a name="tiếng-việt"></a>
-## 🇻🇳 Mô ta
+## 🇻🇳 Mô tả
 
 Extension tự động chuyển hướng các bài viết trên Reddit sang phiên bản Tiếng Việt (`?tl=vi`).
 Phiên bản v3.0 là một đợt trùng tu toàn diện về mặt kiến trúc, chuyển đổi hoàn toàn sang **Manifest V3** để tối ưu hóa hiệu năng và bảo vệ quyền riêng tư.
