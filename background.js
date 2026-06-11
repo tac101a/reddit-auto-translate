@@ -1,101 +1,79 @@
-// In-memory cache is the source of truth for per-URL attempts
-let triedCache = new Set();
+import { clearTriedCache, hasTried, markTried } from "./src/storage/sessionManager.js";
+import { isEligibleForTranslation } from "./src/rules/urlValidator.js";
 
-function loadTried() {
-  chrome.storage.local.get({ triedMap: {} }, ({ triedMap }) => {
-    if (triedMap && typeof triedMap === "object") {
-      triedCache = new Set(Object.keys(triedMap));
-    }
-  });
-}
-
-function resetTried() {
-  triedCache.clear();
-  chrome.storage.local.set({ triedMap: {} });
-}
-
-function baseKeyFrom(urlStr) {
+function buildTranslatedUrl(url) {
   try {
-    const u = new URL(urlStr);
-    let path = u.pathname;
-    if (path.endsWith("/") && path.length > 1) path = path.slice(0, -1);
-    return u.origin + path;
-  } catch (e) {
+    const translatedUrl = new URL(url);
+    translatedUrl.searchParams.set("tl", "vi");
+    return translatedUrl.toString();
+  } catch (error) {
     return null;
   }
 }
 
-function shouldTranslateSync(urlStr) {
-  try {
-    const u = new URL(urlStr);
-    const host = u.hostname.replace(/^www\./, "");
-    if (!host.endsWith("reddit.com") && !host.endsWith("redd.it")) return false;
-    if (u.searchParams.get("show")?.toLowerCase() === "original") return false;
-    if (u.searchParams.has("tl") || u.searchParams.has("show")) return false;
-    const baseKey = baseKeyFrom(urlStr);
-    if (!baseKey || triedCache.has(baseKey)) return false;
-    return true;
-  } catch (e) {
-    return false;
+async function processRedirection(tabId, url) {
+  if (!Number.isInteger(tabId) || tabId < 0 || !url) {
+    return;
   }
+
+  if (!isEligibleForTranslation(url)) {
+    return;
+  }
+
+  if (await hasTried(url)) {
+    return;
+  }
+
+  const newUrl = buildTranslatedUrl(url);
+
+  if (!newUrl) {
+    return;
+  }
+
+  await chrome.tabs.update(tabId, { url: newUrl });
+  await markTried(url);
 }
 
-// Fire-and-forget persistence; RAM check remains authoritative
-function markTried(urlStr) {
-  const baseKey = baseKeyFrom(urlStr);
-  if (!baseKey) return;
-  triedCache.add(baseKey);
-  chrome.storage.local.get({ triedMap: {} }, ({ triedMap }) => {
-    const map = triedMap && typeof triedMap === "object" ? triedMap : {};
-    map[baseKey] = true;
-    chrome.storage.local.set({ triedMap: map });
-  });
+function handleRedirection(tabId, url) {
+  processRedirection(tabId, url).catch(() => {});
 }
 
-// Reset cache on browser start or extension install/update
-chrome.runtime.onStartup.addListener(resetTried);
-chrome.runtime.onInstalled.addListener(resetTried);
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status !== "loading" || !changeInfo.url) {
+    return;
+  }
 
-// Load persisted cache (in case background reloads mid-session)
-loadTried();
+  handleRedirection(tabId, changeInfo.url);
+});
 
-// Request-time redirect (blocking listener must stay synchronous)
-chrome.webRequest.onBeforeRequest.addListener(
+chrome.webNavigation.onHistoryStateUpdated.addListener(
   (details) => {
-    if (details.type !== "main_frame") return;
-    if (!shouldTranslateSync(details.url)) return;
-    markTried(details.url);
-    try {
-      const u = new URL(details.url);
-      u.searchParams.set("tl", "vi");
-      return { redirectUrl: u.toString() };
-    } catch (e) {
+    if (details.frameId !== 0) {
       return;
     }
-  },
-  { urls: ["*://*.reddit.com/*", "*://*.redd.it/*"] },
-  ["blocking"]
-);
 
-// Fallback for browsers where blocking is ineffective
-chrome.webNavigation.onBeforeNavigate.addListener(
-  (details) => {
-    if (details.frameId !== 0) return;
-    if (!shouldTranslateSync(details.url)) return;
-    markTried(details.url);
-    try {
-      const u = new URL(details.url);
-      u.searchParams.set("tl", "vi");
-      chrome.tabs.update(details.tabId, { url: u.toString() });
-    } catch (e) {}
+    handleRedirection(details.tabId, details.url);
   },
-  { url: [{ hostSuffix: "reddit.com" }, { hostSuffix: "redd.it" }] }
-);
-
-// Messaging
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg?.type === "clearTried") {
-    resetTried();
-    sendResponse({ ok: true });
+  {
+    url: [{ hostSuffix: "reddit.com" }, { hostSuffix: "redd.it" }],
   }
+);
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type !== "clearTried") {
+    return false;
+  }
+
+  clearTriedCache()
+    .then(() => {
+      sendResponse({ ok: true });
+    })
+    .catch((error) => {
+      sendResponse({
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
+
+  return true;
 });
