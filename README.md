@@ -24,6 +24,7 @@ This v3.0 update features a complete architectural rewrite to **Manifest V3**, m
 
 - **Zero Persistent RAM:** Powered by an MV3 module service worker that starts on-demand and sleeps when idle.
 - **O(1) Session State:** Redirect attempts are stored as independent `chrome.storage.session` keys. This eliminates disk I/O lag and prevents read-modify-write race conditions.
+- **Synchronous Redirect Locks:** In-memory locks prevent duplicate redirects when Reddit SPA navigation events fire at nearly the same time.
 - **SPA-Aware Routing:** Utilizes `chrome.webNavigation.onHistoryStateUpdated` to seamlessly catch Reddit's internal Single Page Application route changes without heavy request blocking.
 - **Privacy First (Incognito Split):** Configured with `"incognito": "split"`. Normal and Incognito windows run entirely separate service workers and session storages. Cache state never leaks between browsing modes.
 
@@ -39,7 +40,7 @@ This v3.0 update features a complete architectural rewrite to **Manifest V3**, m
 - Browse Reddit normally. Eligible pages are automatically redirected **once per session**.
 - Use the Extension Popup to:
   - **Translate to Vietnamese:** Force the current page to translate.
-  - **Show Original:** Revert the current page to English (the extension will memorize this choice for the session).
+  - **Show Original:** Add `show=original` to the current URL. Reddit and the extension treat that URL as an explicit request to skip translation.
   - **Clear Cache:** Manually wipe the session memory if you want the extension to attempt translating previously visited links again.
 
 ---
@@ -54,6 +55,7 @@ Phiên bản v3.0 là một đợt trùng tu toàn diện về mặt kiến trú
 
 - **Không ngốn RAM (Zero Persistent RAM):** Chuyển từ Background Page (chạy ngầm vĩnh viễn) sang Service Worker (chỉ thức dậy khi cần thiết). Hoàn toàn không gây giật lag cho trình duyệt hay các trang web khác.
 - **Tốc độ xử lý O(1):** Dữ liệu bộ nhớ tạm được lưu trên RAM (`chrome.storage.session`) với các key độc lập, loại bỏ hoàn toàn hiện tượng nghẽn cổ chai (Disk I/O) khi đọc/ghi ổ cứng.
+- **Khóa chuyển hướng đồng bộ:** Các khóa in-memory ngăn chuyển hướng trùng lặp khi nhiều sự kiện điều hướng SPA của Reddit chạy gần như cùng lúc.
 - **Tương thích SPA:** Hoạt động mượt mà với cơ chế tải trang động (Single Page Application) của Reddit nhờ API `onHistoryStateUpdated`.
 - **Bảo mật tuyệt đối (Incognito Split):** Khi lướt Reddit ở chế độ Ẩn danh (Incognito), trình duyệt sẽ tạo một Service Worker riêng biệt. Lịch sử dịch của bạn ở tab thường sẽ **không** bị rò rỉ sang tab ẩn danh và ngược lại.
 
@@ -69,5 +71,5 @@ Phiên bản v3.0 là một đợt trùng tu toàn diện về mặt kiến trú
 - Cứ lướt Reddit như bình thường. Các bài viết hợp lệ sẽ tự động hiện Tiếng Việt (chỉ tự động 1 lần cho mỗi bài đăng trong một phiên làm việc).
 - Bấm vào icon của Extension trên thanh công cụ để:
   - **Dịch sang Tiếng Việt**: Ép trang hiện tại sang tiếng Việt.
-  - **Xem bản gốc**: Ép trang hiện tại về tiếng Anh gốc (Extension sẽ ghi nhớ lựa chọn này và không tự động dịch lại).
+  - **Xem bản gốc**: Thêm `show=original` vào URL hiện tại. Reddit và extension xem URL đó là yêu cầu rõ ràng để bỏ qua dịch tự động.
   - **Reset Cache**: Xóa bộ nhớ tạm của extension trong trường hợp bạn muốn extension tự động dịch lại các bài viết đã xem.

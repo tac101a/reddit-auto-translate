@@ -1,5 +1,7 @@
-import { clearTriedCache, hasTried, markTried } from "./src/storage/sessionManager.js";
+import { clearTriedCache, getBaseKey, hasTried, markTried } from "./src/storage/sessionManager.js";
 import { isEligibleForTranslation } from "./src/rules/urlValidator.js";
+
+const inFlightLocks = new Set();
 
 function buildTranslatedUrl(url) {
   try {
@@ -20,22 +22,40 @@ async function processRedirection(tabId, url) {
     return;
   }
 
-  if (await hasTried(url)) {
+  const lockKey = getBaseKey(url) || url;
+
+  if (inFlightLocks.has(lockKey)) {
     return;
   }
 
-  const newUrl = buildTranslatedUrl(url);
+  inFlightLocks.add(lockKey);
 
-  if (!newUrl) {
-    return;
+  try {
+    if (await hasTried(url)) {
+      return;
+    }
+
+    const newUrl = buildTranslatedUrl(url);
+
+    if (!newUrl) {
+      return;
+    }
+
+    await markTried(url);
+    await chrome.tabs.update(tabId, { url: newUrl });
+  } finally {
+    inFlightLocks.delete(lockKey);
   }
-
-  await chrome.tabs.update(tabId, { url: newUrl });
-  await markTried(url);
 }
 
 function handleRedirection(tabId, url) {
-  processRedirection(tabId, url).catch(() => {});
+  processRedirection(tabId, url).catch((error) => {
+    const message = error instanceof Error ? error.message : String(error);
+
+    if (!message.includes("No tab with id")) {
+      console.error(error);
+    }
+  });
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {

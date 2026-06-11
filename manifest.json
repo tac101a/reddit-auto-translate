@@ -3,11 +3,12 @@
   "name": "Reddit Auto Translate (vi) - v3.0",
   "version": "3.0",
   "incognito": "split",
+  "minimum_chrome_version": "104",
   "description": "Manifest V3 Reddit auto-translation using service worker orchestration and session-backed redirect state.",
   "permissions": [
     "webNavigation",
     "storage",
-    "tabs"
+    "activeTab"
   ],
   "host_permissions": [
     "*://*.reddit.com/*",

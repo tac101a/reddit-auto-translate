@@ -1,6 +1,6 @@
 const TRIED_KEY_PREFIX = "tried:";
 
-function getBaseKey(url) {
+export function getBaseKey(url) {
   try {
     const parsedUrl = new URL(url);
     let path = parsedUrl.pathname;
@@ -42,7 +42,16 @@ export async function markTried(url) {
     return;
   }
 
-  await getSessionStorageArea().set({ [storageKey]: true });
+  try {
+    await getSessionStorageArea().set({ [storageKey]: true });
+  } catch (error) {
+    if (!isQuotaExceededError(error)) {
+      throw error;
+    }
+
+    await clearTriedCache();
+    await getSessionStorageArea().set({ [storageKey]: true });
+  }
 }
 
 export async function clearTriedCache() {
@@ -52,4 +61,9 @@ export async function clearTriedCache() {
   if (triedKeys.length > 0) {
     await getSessionStorageArea().remove(triedKeys);
   }
+}
+
+function isQuotaExceededError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.toLowerCase().includes("quota");
 }

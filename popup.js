@@ -66,10 +66,46 @@ function setParam(url, key, value, removeKeys = []) {
   }
 }
 
+function isSupportedRedditUrl(url) {
+  try {
+    const parsedUrl = new URL(url);
+    const hostname = parsedUrl.hostname.toLowerCase();
+
+    if (parsedUrl.protocol === "chrome:") {
+      return false;
+    }
+
+    return (
+      hostname === "reddit.com" ||
+      hostname.endsWith(".reddit.com") ||
+      hostname === "redd.it" ||
+      hostname.endsWith(".redd.it")
+    );
+  } catch (error) {
+    return false;
+  }
+}
+
+function setPageActionAvailability(isAvailable) {
+  const btnVi = document.getElementById("to_vi");
+  const btnOg = document.getElementById("to_original");
+
+  for (const button of [btnVi, btnOg]) {
+    button.disabled = !isAvailable;
+    button.style.opacity = isAvailable ? "1" : "0.5";
+  }
+}
+
 async function updateUIState() {
   const tab = await getActiveTab();
 
   if (!tab?.url) {
+    setPageActionAvailability(false);
+    return;
+  }
+
+  if (!isSupportedRedditUrl(tab.url)) {
+    setPageActionAvailability(false);
     return;
   }
 
@@ -78,6 +114,7 @@ async function updateUIState() {
     const btnVi = document.getElementById("to_vi");
     const btnOg = document.getElementById("to_original");
 
+    setPageActionAvailability(true);
     btnVi.classList.remove("active");
     btnOg.classList.remove("active");
 
@@ -96,7 +133,7 @@ updateUIState();
 document.getElementById("to_vi").addEventListener("click", async () => {
   const tab = await getActiveTab();
 
-  if (!tab?.url) {
+  if (!tab?.url || !isSupportedRedditUrl(tab.url)) {
     return;
   }
 
@@ -111,7 +148,7 @@ document.getElementById("to_vi").addEventListener("click", async () => {
 document.getElementById("to_original").addEventListener("click", async () => {
   const tab = await getActiveTab();
 
-  if (!tab?.url) {
+  if (!tab?.url || !isSupportedRedditUrl(tab.url)) {
     return;
   }
 
